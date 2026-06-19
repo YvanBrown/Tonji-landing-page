@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TONJI — La plateforme gabonaise qui modernise la tontine traditionnelle. Gérez vos cagnottes communautaires depuis votre smartphone ou WhatsApp." />
+  <title>TONJI — La tontine, réinventée.</title>
+
+  <!-- Favicon TONJI -->
+  <link rel="icon" type="image/png" href="logo-tonji.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            forest:  '#0A6847',
+            'forest-deep': '#085538',
+            ivory:   '#F6F7F4',
+            ink:     '#14202E',
+            slate:   '#4A5568',
+            gold:    '#E8A830',
+            'gold-light': '#F0BC4A',
+            coral:   '#D94F3D',
+          },
+          fontFamily: {
+            display: ['"DM Serif Display"', 'Georgia', 'serif'],
+            sans:    ['Inter', 'system-ui', 'sans-serif'],
+            mono:    ['"JetBrains Mono"', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html  { scroll-behavior: smooth; }
+    body  { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; background: #F6F7F4; }
+
+    /* ── Scroll progress ── */
+    #progress {
+      position: fixed; top: 0; left: 0; height: 2px; z-index: 9999;
+      background: linear-gradient(90deg, #E8A830 0%, #0A6847 100%);
+      width: 0%; transition: width .1s linear;
+    }
+
+    /* ── Nav ── */
+    #nav { transition: background .3s, backdrop-filter .3s, box-shadow .3s; }
+    #nav.scrolled {
+      background: rgba(10,104,71,.95) !important;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 1px 0 rgba(255,255,255,.08);
+    }
+
+    /* ── Typography helpers ── */
+    .text-gradient {
+      background: linear-gradient(135deg, #F6F7F4 0%, #E8A830 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Pill badge ── */
+    .badge-pill {
+      background: rgba(232,168,48,.12);
+      border: 1px solid rgba(232,168,48,.28);
+      backdrop-filter: blur(8px);
+    }
+
+    /* ── Phone mockup ── */
+    .phone-shell {
+      background: linear-gradient(160deg, #18303f 0%, #0c1e2a 100%);
+      border-radius: 44px;
+      box-shadow:
+        0 0 0 2px rgba(232,168,48,.22),
+        0 50px 100px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .phone-shell::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(255,255,255,.04) 0%, transparent 55%);
+      border-radius: 44px;
+      pointer-events: none;
+    }
+
+    /* ── Value cards ── */
+    .val-card {
+      transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s;
+    }
+    .val-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 24px 48px rgba(10,104,71,.11);
+    }
+
+    /* ── CTA buttons ── */
+    .cta-btn {
+      transition: transform .22s, box-shadow .22s;
+      position: relative; overflow: hidden;
+    }
+    .cta-btn::after {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(255,255,255,.08); opacity: 0;
+      transition: opacity .18s;
+    }
+    .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
+    .cta-btn:hover::after { opacity: 1; }
+    .cta-btn:active { transform: translateY(0); }
+
+    /* ── Floating phone animation ── */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+    .floating { animation: float 5s ease-in-out infinite; position: relative; }
+
+    /* ── Image bubble animations ── */
+    @keyframes floatBubble1 {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes floatBubble2 {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+    }
+    @keyframes floatBubble3 {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* ── Pulse dot ── */
+    @keyframes pulse-gold {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: .6; transform: scale(1.3); }
+    }
+    .pulse { animation: pulse-gold 2s ease-in-out infinite; }
+
+    /* ── Balance shimmer ── */
+    @keyframes shimmer {
+      0%, 100% { opacity: .75; }
+      50%       { opacity: 1; }
+    }
+    .shimmer { animation: shimmer 3.5s ease-in-out infinite; }
+
+    /* ── Testimonial card ── */
+    .testi-card {
+      background: linear-gradient(140deg, #0A6847 0%, #064832 100%);
+      position: relative; overflow: hidden;
+    }
+    .testi-card::before {
+      content: '\201C';
+      position: absolute; top: -30px; left: 16px;
+      font-size: 200px;
+      font-family: 'DM Serif Display', serif;
+      color: rgba(232,168,48,.12);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* ── Section rule ── */
+    .rule {
+      width: 36px; height: 3px; border-radius: 2px;
+      background: linear-gradient(90deg, #E8A830, #0A6847);
+    }
+
+    /* ── Download link rows ── */
+    .dl-row {
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.04);
+      transition: border-color .2s;
+    }
+    .dl-row:hover { border-color: rgba(232,168,48,.5); }
+    .dl-row .arrow { transition: transform .2s; color: rgba(246,247,244,.35); }
+    .dl-row:hover .arrow { transform: translateX(4px); }
+
+    /* ── Stat dividers ── */
+    .stat-item + .stat-item {
+      border-left: 1px solid rgba(10,104,71,.15);
+    }
+  </style>
+</head>
+
+<body class="bg-ivory text-ink overflow-x-hidden">
+
+  <div id="progress"></div>
+
+  <!-- ════════════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════════ -->
+  <header id="nav" class="relative z-50" style="background:transparent;">
+    <div class="max-w-6xl mx-auto px-6 py-1 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2">
+        <img src="logo-tonji.png" alt="TONJI" class="h-24 w-auto shrink-0">
+      </a>
+
+      <!-- Navigation Menu -->
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="#apropos" class="text-white font-sans font-medium hover:text-gold transition-colors duration-300" style="color:rgba(246,247,244,.8);">À propos</a>
+        <a href="#mobile" class="text-white font-sans font-medium hover:text-gold transition-colors duration-300" style="color:rgba(246,247,244,.8);">Mobile</a>
+        <a href="https://wa.me/24100000000" target="_blank" class="text-white font-sans font-medium hover:text-gold transition-colors duration-300" style="color:rgba(246,247,244,.8);">WhatsApp</a>
+        <a href="#contact" class="text-white font-sans font-medium hover:text-gold transition-colors duration-300" style="color:rgba(246,247,244,.8);">Contact</a>
+      </nav>
+
+    </div>
+  </header>
+
+
+  <!-- ════════════════════════════════════════════
+       HERO
+  ════════════════════════════════════════════ -->
+  <section class="relative min-h-screen flex items-center overflow-hidden -mt-[110px]" style="background:#0A6847;">
+
+    <!-- Grid texture -->
+    <div class="absolute inset-0 pointer-events-none opacity-[0.04]">
+      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="g" width="48" height="48" patternUnits="userSpaceOnUse">
+            <path d="M48 0L0 0 0 48" fill="none" stroke="white" stroke-width="0.6"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#g)"/>
+      </svg>
+    </div>
+
+    <!-- Glow orbs -->
+    <div class="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full pointer-events-none"
+         style="background:radial-gradient(circle, rgba(232,168,48,.15) 0%, transparent 70%);"></div>
+    <div class="absolute bottom-0 -left-20 w-80 h-80 rounded-full pointer-events-none"
+         style="background:radial-gradient(circle, rgba(246,247,244,.06) 0%, transparent 70%);"></div>
+
+    <div class="max-w-6xl mx-auto px-6 pt-40 pb-24 w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+        <!-- ── RIGHT: Image mosaic (3 images) ── -->
+        <div class="order-1 lg:order-2 hidden lg:grid grid-cols-2 grid-rows-2 gap-6 h-[600px]">
+
+          <!-- Image 1: Top-left (1 col x 2 rows) - Large -->
+          <div class="row-span-2" style="animation: floatBubble1 6s ease-in-out infinite;">
+            <div class="w-full h-full rounded-[50px] overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 cursor-pointer group hover:scale-105">
+              <img src="happy-confident-young-african-businesswoman-using-mobile-phone.jpg" alt="Woman with phone" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+              <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/10 group-hover:to-black/30 transition-all duration-500"></div>
+            </div>
+          </div>
+
+          <!-- Image 2: Top-right (1 col x 1 row) -->
+          <div class="col-span-1" style="animation: floatBubble2 7s ease-in-out infinite; animation-delay: 0.3s;">
+            <div class="w-full h-full rounded-[45px] overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 cursor-pointer group hover:scale-105">
+              <img src="young-african-students-wearing-facemasks-holding-books-phones-campus.jpg" alt="Students with books" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+              <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/10 group-hover:to-black/30 transition-all duration-500"></div>
+            </div>
+          </div>
+
+          <!-- Image 3: Bottom-right (1 col x 1 row) -->
+          <div class="col-span-1" style="animation: floatBubble3 6.8s ease-in-out infinite; animation-delay: 0.5s;">
+            <div class="w-full h-full rounded-[45px] overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 cursor-pointer group hover:scale-105">
+              <img src="portrait-senior-man-with-camera-device-world-photography-day-celebration.jpg" alt="Senior man with phone" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+              <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/10 group-hover:to-black/30 transition-all duration-500"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── LEFT: Copy ── -->
+        <div class="space-y-8 order-2 lg:order-1">
+
+          <!-- H1 -->
+          <h1 class="font-display leading-[1.05]">
+            <span class="block text-5xl sm:text-6xl xl:text-7xl text-white">La tontine,</span>
+            <span class="block text-5xl sm:text-6xl xl:text-7xl text-gradient">réinventée.</span>
+          </h1>
+
+          <!-- Subtitle -->
+          <p class="text-lg sm:text-xl leading-relaxed max-w-md font-sans" style="color:rgba(246,247,244,.72);">
+            Gérez vos tontines et cagnottes communautaires simplement depuis votre smartphone ou WhatsApp.
+          </p>
+
+          <!-- CTA buttons -->
+          <div class="flex flex-col sm:flex-row gap-3">
+
+            <!-- App Store / Play Store -->
+            <a href="#" class="cta-btn group flex items-center gap-3.5 px-5 py-3.5 rounded-xl bg-white text-ink font-sans font-medium shadow-lg">
+              <svg class="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+              </svg>
+              <div class="text-left leading-tight">
+                <div class="text-[10px] text-slate font-sans">Disponible sur</div>
+                <div class="text-sm font-semibold">App Store &amp; Play Store</div>
+              </div>
+            </a>
+
+            <!-- WhatsApp -->
+            <a href="https://wa.me/24100000000" class="cta-btn group flex items-center gap-3.5 px-5 py-3.5 rounded-xl font-sans font-medium text-white"
+               style="background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18);">
+              <svg class="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+              <div class="text-left leading-tight">
+                <div class="text-[10px] font-sans" style="color:rgba(246,247,244,.55);">Discutez avec</div>
+                <div class="text-sm font-semibold">TONJI sur WhatsApp</div>
+              </div>
+            </a>
+          </div>
+
+        </div>
+
+
+      </div>
+    </div>
+
+    <!-- Wave divider -->
+    <div class="absolute bottom-0 inset-x-0 pointer-events-none">
+      <svg viewBox="0 0 1440 64" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" class="w-full h-14">
+        <path d="M0,0 C480,64 960,64 1440,0 L1440,64 L0,64 Z" fill="#F6F7F4"/>
+      </svg>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════
+       À PROPOS (Moved to first section)
+  ════════════════════════════════════════════ -->
+  <section id="apropos" class="py-24 px-6 bg-ivory">
+    <div class="max-w-6xl mx-auto">
+      <!-- Main intro -->
+      <div class="text-center mb-16 space-y-4">
+        <div class="flex justify-center"><div class="rule"></div></div>
+        <h2 class="font-display text-4xl lg:text-5xl text-ink">À propos de TONJI</h2>
+        <p class="text-lg leading-relaxed max-w-2xl mx-auto font-sans text-slate">
+          TONJI est une plateforme gabonaise innovante qui modernise la tontine traditionnelle. Nous croyons que la solidarité financière peut être simple, sécurisée et accessible à tous.
+        </p>
+      </div>
+
+      <!-- Mission, Values, Vision -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <h3 class="font-semibold text-ink text-xl mb-3 font-sans">Notre Mission</h3>
+          <p class="text-slate font-sans leading-relaxed">Faciliter l'épargne collective en modernisant les traditions financières gabonaises.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <h3 class="font-semibold text-ink text-xl mb-3 font-sans">Nos Valeurs</h3>
+          <p class="text-slate font-sans leading-relaxed">Transparence, sécurité et inclusivité pour tous les Gabonais.</p>
+        </div>
+        <div class="bg-white rounded-2xl p-8 shadow-sm">
+          <h3 class="font-semibold text-ink text-xl mb-3 font-sans">Notre Vision</h3>
+          <p class="text-slate font-sans leading-relaxed">Devenir la plateforme de référence pour la gestion des tontines en Afrique.</p>
+        </div>
+      </div>
+
+      <!-- Notre promesse -->
+      <div class="space-y-8">
+        <div class="text-center space-y-4">
+          <p class="text-base leading-relaxed max-w-lg mx-auto font-sans text-slate">
+            Tout ce que vous aimez dans la tontine traditionnelle, sans les contraintes.
+          </p>
+        </div>
+
+        <!-- Features Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+          <!-- Sécurisé -->
+          <article class="val-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(10,104,71,.08);">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#0A6847" stroke-width="1.8" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-semibold text-ink font-sans">Sécurisé</h4>
+              <p class="text-sm leading-relaxed text-slate font-sans">Vos cotisations sont chiffrées et protégées. Aucun accès non autorisé n'est possible.</p>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <div class="w-1.5 h-1.5 rounded-full bg-forest shrink-0"></div>
+              <span class="font-mono text-[10px] font-medium" style="color:#0A6847;">SSL · AES-256</span>
+            </div>
+          </article>
+
+          <!-- Transparent -->
+          <article class="val-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(232,168,48,.08);">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#E8A830" stroke-width="1.8" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-semibold text-ink font-sans">Transparent</h4>
+              <p class="text-sm leading-relaxed text-slate font-sans">Historique complet et traçable de chaque cotisation. Tout le monde voit tout, en temps réel.</p>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <div class="w-1.5 h-1.5 rounded-full bg-gold shrink-0"></div>
+              <span class="font-mono text-[10px] font-medium" style="color:#E8A830;">Audit log · Temps réel</span>
+            </div>
+          </article>
+
+          <!-- Accessible -->
+          <article class="val-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(10,104,71,.08);">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#0A6847" stroke-width="1.8" aria-hidden="true">
+                <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-semibold text-ink font-sans">Accessible</h4>
+              <p class="text-sm leading-relaxed text-slate font-sans">App mobile ou WhatsApp — sans barrière technologique. Utilisable par tous, partout au Gabon.</p>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <div class="w-1.5 h-1.5 rounded-full bg-forest shrink-0"></div>
+              <span class="font-mono text-[10px] font-medium" style="color:#0A6847;">iOS · Android · WhatsApp</span>
+            </div>
+          </article>
+
+          <!-- Communautaire -->
+          <article class="val-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center" style="background:rgba(217,79,61,.08);">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#D94F3D" stroke-width="1.8" aria-hidden="true">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+            <div class="space-y-2">
+              <h4 class="font-semibold text-ink font-sans">Communautaire</h4>
+              <p class="text-sm leading-relaxed text-slate font-sans">Créez des groupes, invitez vos proches, et gérez plusieurs tontines simultanément.</p>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <div class="w-1.5 h-1.5 rounded-full bg-coral shrink-0"></div>
+              <span class="font-mono text-[10px] font-medium" style="color:#D94F3D;">Groupes · Cagnottes</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════
+       TESTIMONIAL + DOWNLOAD
+  ════════════════════════════════════════════ -->
+  <section class="py-24 px-6" style="background:#14202E;">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+        <!-- Testimonial card 1 -->
+        <div class="testi-card rounded-3xl p-10 lg:p-14">
+          <div class="relative z-10 space-y-8">
+
+            <!-- Stars -->
+            <div class="flex gap-1" aria-label="5 étoiles sur 5">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+
+            <blockquote class="font-display text-2xl lg:text-[1.75rem] text-white leading-relaxed italic">
+              "Avec TONJI, je gère ma tontine familiale en toute transparence, sans me déplacer. C'est exactement ce qu'il nous fallait."
+            </blockquote>
+
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-gold flex items-center justify-center font-bold text-lg text-ink shrink-0">A</div>
+              <div>
+                <p class="font-semibold text-white font-sans">Amina Koumba</p>
+                <p class="text-sm font-sans" style="color:rgba(246,247,244,.55);">Libreville, Gabon 🇬🇦</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial card 2 -->
+        <div class="testi-card rounded-3xl p-10 lg:p-14">
+          <div class="relative z-10 space-y-8">
+
+            <!-- Stars -->
+            <div class="flex gap-1" aria-label="5 étoiles sur 5">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#E8A830" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+
+            <blockquote class="font-display text-2xl lg:text-[1.75rem] text-white leading-relaxed italic">
+              "TONJI a simplifié complètement la gestion de notre tontine d'affaires. L'application est intuitive et très sécurisée."
+            </blockquote>
+
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-gold flex items-center justify-center font-bold text-lg text-ink shrink-0">M</div>
+              <div>
+                <p class="font-semibold text-white font-sans">Marc Essomba</p>
+                <p class="text-sm font-sans" style="color:rgba(246,247,244,.55);">Port-Gentil, Gabon 🇬🇦</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       CONTACT
+  ════════════════════════════════════════════ -->
+  <section id="contact" class="py-24 px-6 bg-ivory">
+    <div class="max-w-6xl mx-auto">
+      <div class="mb-16 space-y-4">
+        <div class="flex justify-center"><div class="rule"></div></div>
+        <h2 class="font-display text-4xl lg:text-5xl text-ink">Nous Contacter</h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <!-- Left: Contact Info -->
+        <div class="space-y-8">
+          <p class="text-lg leading-relaxed font-sans text-slate">
+            Des questions ou des commentaires ? Nous aimerions vous entendre. Remplissez le formulaire et nous vous répondrons au plus tôt.
+          </p>
+
+          <div class="space-y-6">
+            <!-- Phone -->
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#0A6847;">
+                <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-ink text-lg font-sans mb-1">Téléphone</h3>
+                <p class="text-slate font-sans">+241 06 XX XX XX</p>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#E8A830;">
+                <svg class="w-6 h-6 text-ink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-ink text-lg font-sans mb-1">Email</h3>
+                <p class="text-slate font-sans">contact@tonji.ga</p>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#0A6847;">
+                <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-ink text-lg font-sans mb-1">Localisation</h3>
+                <p class="text-slate font-sans">Libreville, Gabon 🇬🇦</p>
+              </div>
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#25D366;">
+                <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-ink text-lg font-sans mb-1">WhatsApp</h3>
+                <a href="https://wa.me/24100000000" target="_blank" class="text-gold font-sans hover:underline">Discutez avec nous</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Contact Form -->
+        <div class="bg-white rounded-3xl p-8 lg:p-10 shadow-lg">
+          <form class="space-y-6">
+            <!-- Name -->
+            <div>
+              <label class="block text-sm font-semibold text-ink font-sans mb-2">Nom complet</label>
+              <input type="text" placeholder="Votre nom" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gold focus:outline-none transition-colors font-sans" style="border-color:#E0E0E0;">
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm font-semibold text-ink font-sans mb-2">Email</label>
+              <input type="email" placeholder="votre@email.com" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gold focus:outline-none transition-colors font-sans" style="border-color:#E0E0E0;">
+            </div>
+
+            <!-- Subject -->
+            <div>
+              <label class="block text-sm font-semibold text-ink font-sans mb-2">Sujet</label>
+              <input type="text" placeholder="Objet de votre message" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gold focus:outline-none transition-colors font-sans" style="border-color:#E0E0E0;">
+            </div>
+
+            <!-- Message -->
+            <div>
+              <label class="block text-sm font-semibold text-ink font-sans mb-2">Message</label>
+              <textarea rows="5" placeholder="Votre message..." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-gold focus:outline-none transition-colors font-sans resize-none" style="border-color:#E0E0E0;"></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full py-3 px-6 rounded-xl font-sans font-semibold text-white transition-all duration-300 hover:shadow-lg" style="background:#0A6847;">
+              Envoyer le message
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════ -->
+  <footer class="py-10 px-6" style="background:#14202E; border-top:1px solid rgba(255,255,255,.06);">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <img src="logo-tonji-footer.png" alt="TONJI" class="h-28 w-auto shrink-0">
+      </div>
+
+      <!-- Links -->
+      <nav class="flex flex-wrap gap-6 justify-center" aria-label="Liens légaux">
+        <a href="#" class="text-sm font-sans transition-colors duration-150 hover:text-gold" style="color:rgba(246,247,244,.45);">Confidentialité</a>
+        <a href="#" class="text-sm font-sans transition-colors duration-150 hover:text-gold" style="color:rgba(246,247,244,.45);">CGU</a>
+        <a href="#" class="text-sm font-sans transition-colors duration-150 hover:text-gold" style="color:rgba(246,247,244,.45);">Contact</a>
+        <a href="#" class="text-sm font-sans transition-colors duration-150 hover:text-gold" style="color:rgba(246,247,244,.45);">Aide</a>
+      </nav>
+
+      <!-- Copyright -->
+      <p class="text-xs font-sans text-center" style="color:rgba(246,247,244,.28);">
+        &copy; 2026 TONJI &middot; Libreville, Gabon 🇬🇦
+      </p>
+
+    </div>
+  </footer>
+
+
+  <!-- ════════════════════════════════════════════
+       SCRIPTS
+  ════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      var bar = document.getElementById('progress');
+      var nav = document.getElementById('nav');
+
+      window.addEventListener('scroll', function () {
+        var scrolled  = document.documentElement.scrollTop;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = ((scrolled / docHeight) * 100).toFixed(1) + '%';
+        scrolled > 64 ? nav.classList.add('scrolled') : nav.classList.remove('scrolled');
+      }, { passive: true });
+    })();
+  </script>
+
+</body>
+</html>
